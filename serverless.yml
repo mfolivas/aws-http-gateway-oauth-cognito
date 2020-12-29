@@ -62,6 +62,7 @@ resources:
             ScopeDescription: 'Profile access'
 
     ServiceUserPoolClient:
+      DependsOn: UserPoolResourceServer
       Type: AWS::Cognito::UserPoolClient
       Properties:
         ClientName: service-user-pool-client-${opt:stage, self:provider.stage}
