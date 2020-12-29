@@ -39,16 +39,58 @@ resources:
     HttpApi:
       DependsOn: ServiceUserPool
 
+    # Creates a role that allows Cognito to send SNS messages
+    SNSRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument: 
+          Version: '2012-10-17'
+          Statement:
+            - Effect: 'Allow'
+              Principal:
+                Service:
+                  - 'cognito-idp.amazonaws.com'
+              Action:
+                - 'sts:AssumeRole'
+        Policies:
+          - 
+           PolicyName: 'CognitoSNSPolicy'
+           PolicyDocument:
+             Version: '2012-10-17'
+             Statement:
+                - 
+                  Effect: 'Allow'
+                  Action: 'sns:publish'
+                  Resource: '*'
+
     ServiceUserPool:
       Type: AWS::Cognito::UserPool
       Properties:
         UserPoolName: service-user-pool-${opt:stage, self:provider.stage}
         AdminCreateUserConfig: 
           AllowAdminCreateUserOnly: false  # Don't allow users to sign themselves up
-        UsernameAttributes:
-          - email
+        MfaConfiguration: ON
+        SmsConfiguration:
+          ExternalId: service-user-pool-external-${self:provider.stage}
+          SnsCallerArn: !GetAtt SNSRole.Arn
         AutoVerifiedAttributes:
-          - email
+          - phone_number
+        Schema:
+          - Name: name
+            AttributeDataType: String
+            Mutable: true
+            Required: true
+          - Name: email
+            AttributeDataType: String
+            Mutable: false
+            Required: true
+          - Name: phone_number
+            AttributeDataType: String
+            Mutable: false
+            Required: true
+          - Name: slackId
+            AttributeDataType: String
+            Mutable: true
 
     UserPoolResourceServer:
       Type: AWS::Cognito::UserPoolResourceServer
