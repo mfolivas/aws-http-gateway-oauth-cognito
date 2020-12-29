@@ -24,14 +24,14 @@ functions:
     events:
       - httpApi:
             method: GET
-            path: /user/profile
+            path: /users/profile
             authorizer: serviceAuthorizer
   createProfileInfo:
     handler: profile.post
     events:
       - httpApi:
             method: POST
-            path: /user/profile
+            path: /users/profile
             authorizer: serviceAuthorizer
 
 resources:
@@ -50,19 +50,26 @@ resources:
         AutoVerifiedAttributes:
           - email
 
+    UserPoolResourceServer:
+      Type: AWS::Cognito::UserPoolResourceServer
+      Properties:
+        Identifier: users
+        Name: User API
+        UserPoolId:
+          Ref: ServiceUserPool
+        Scopes:
+          - ScopeName: 'profile'
+            ScopeDescription: 'Profile access'
+
     ServiceUserPoolClient:
       Type: AWS::Cognito::UserPoolClient
       Properties:
         ClientName: service-user-pool-client-${opt:stage, self:provider.stage}
         AllowedOAuthFlows:
-          - implicit
+          - client_credentials
         AllowedOAuthFlowsUserPoolClient: true
         AllowedOAuthScopes:
-          - phone
-          - email
-          - openid
-          - profile
-          - aws.cognito.signin.user.admin
+          - users/profile
         UserPoolId:
           Ref: ServiceUserPool
         CallbackURLs: 
