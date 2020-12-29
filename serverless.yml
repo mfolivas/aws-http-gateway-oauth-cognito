@@ -115,12 +115,36 @@ resources:
           - users/profile
         UserPoolId:
           Ref: ServiceUserPool
+        ExplicitAuthFlows:
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        GenerateSecret: true
+        SupportedIdentityProviders: 
+          - COGNITO
+
+    ClientServiceUserPoolClient:
+      DependsOn: UserPoolResourceServer
+      Type: AWS::Cognito::UserPoolClient
+      Properties:
+        ClientName: client-service-pool-client-${opt:stage, self:provider.stage}
+        AllowedOAuthFlows:
+          - implicit
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthScopes:
+          - phone
+          - email
+          - openid
+          - profile
+          - aws.cognito.signin.user.admin
+          - users/profile
+        UserPoolId:
+          Ref: ServiceUserPool
         CallbackURLs: 
           - https://localhost:3000
         ExplicitAuthFlows:
           - ALLOW_USER_SRP_AUTH
           - ALLOW_REFRESH_TOKEN_AUTH
-        GenerateSecret: true
+        GenerateSecret: false
         SupportedIdentityProviders: 
           - COGNITO
 
