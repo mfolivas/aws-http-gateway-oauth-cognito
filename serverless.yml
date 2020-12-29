@@ -5,6 +5,8 @@ provider:
   runtime: nodejs12.x
   environment:
     DOMAIN_SUFFIX: mandalorian-jedi
+  logs:
+    httpApi: true
   httpApi:
     authorizers:
       serviceAuthorizer:
@@ -18,6 +20,7 @@ provider:
             - Ref: ServiceUserPool
         audience:
           - Ref: ServiceUserPoolClient
+          - Ref: ClientServiceUserPoolClient
 functions:
   getProfileInfo:
     handler: profile.get
@@ -107,7 +110,7 @@ resources:
       DependsOn: UserPoolResourceServer
       Type: AWS::Cognito::UserPoolClient
       Properties:
-        ClientName: service-user-pool-client-${opt:stage, self:provider.stage}
+        ClientName: api-pool-client-${opt:stage, self:provider.stage}
         AllowedOAuthFlows:
           - client_credentials
         AllowedOAuthFlowsUserPoolClient: true

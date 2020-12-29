@@ -28,3 +28,6 @@ And replace the client-id and client-secret with the values, put them together i
 "authorizer":{"claims":{"auth_time":"1609272798","client_id":"some-random-client-id","exp":"1609276398","iat":"1609272798","iss":"https://cognito-idp.us-east-1.amazonaws.com/pool-id"...}
 ```
 - You should be able to fetch the Cognito's `client_id` and `pool_id` (iss)
+
+The application will have multiple app clients: API access and client services.
+
