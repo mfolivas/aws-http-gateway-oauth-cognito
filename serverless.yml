@@ -20,7 +20,18 @@ provider:
             - Ref: ServiceUserPool
         audience:
           - Ref: ServiceUserPoolClient
+      vehicleAuthorizer:
+        identitySource: $request.header.Authorization
+        issuerUrl: 
+          Fn::Join:
+          - ''
+          - - 'https://cognito-idp.'
+            - '${opt:region, self:provider.region}'
+            - '.amazonaws.com/'
+            - Ref: ServiceUserPool
+        audience:
           - Ref: ClientServiceUserPoolClient
+          
 functions:
   getProfileInfo:
     handler: profile.get
@@ -29,13 +40,22 @@ functions:
             method: GET
             path: /users/profile
             authorizer: serviceAuthorizer
+
   createProfileInfo:
     handler: profile.post
     events:
       - httpApi:
             method: POST
-            path: /users/profile
-            authorizer: serviceAuthorizer
+            path: /vehicles/create
+            authorizer: vehicleAuthorizer
+  
+  getVehicles:
+    handler: profile.get
+    events:
+      - httpApi:
+            method: GET
+            path: /vehicles/read
+            authorizer: vehicleAuthorizer
 
 resources:
   Resources:
@@ -105,9 +125,22 @@ resources:
         Scopes:
           - ScopeName: 'profile'
             ScopeDescription: 'Profile access'
+          
+
+    VehiclePoolResourceServer:
+      Type: AWS::Cognito::UserPoolResourceServer
+      Properties:
+        Identifier: vehicles
+        Name: User API
+        UserPoolId:
+          Ref: ServiceUserPool
+        Scopes:
+          - ScopeName: 'create'
+            ScopeDescription: 'Vehicle access'
+          - ScopeName: 'read'
+            ScopeDescription: 'Vehicle read'
 
     ServiceUserPoolClient:
-      DependsOn: UserPoolResourceServer
       Type: AWS::Cognito::UserPoolClient
       Properties:
         ClientName: api-pool-client-${opt:stage, self:provider.stage}
@@ -116,6 +149,7 @@ resources:
         AllowedOAuthFlowsUserPoolClient: true
         AllowedOAuthScopes:
           - users/profile
+          - vehicles/read
         UserPoolId:
           Ref: ServiceUserPool
         ExplicitAuthFlows:
@@ -126,7 +160,6 @@ resources:
           - COGNITO
 
     ClientServiceUserPoolClient:
-      DependsOn: UserPoolResourceServer
       Type: AWS::Cognito::UserPoolClient
       Properties:
         ClientName: client-service-pool-client-${opt:stage, self:provider.stage}
@@ -139,7 +172,8 @@ resources:
           - openid
           - profile
           - aws.cognito.signin.user.admin
-          - users/profile
+          - vehicles/create
+          - vehicles/read
         UserPoolId:
           Ref: ServiceUserPool
         CallbackURLs: 

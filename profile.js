@@ -25,3 +25,10 @@ module.exports.post = (event, context, callback) => {
 
   callback(null, response);
 };
+
+
+const eventRouter = async event => {
+  if (event.action == 'vehicles') {
+    return InvokeLambda(VehicleMicroService.create(event))
+  }
+}
